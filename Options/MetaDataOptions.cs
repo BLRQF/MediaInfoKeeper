@@ -82,13 +82,42 @@ namespace MediaInfoKeeper.Options {
         [SelectItemsSource(nameof(TvdbFallbackLanguageList))]
         public string TvdbFallbackLanguages { get; set; } = "zhtw,yue";
 
+        [DisplayName("启用 Bangumi 角色中文名")]
+        [Description("用 Bangumi 的中文角色名替换动漫角色名。只写 Bangumi 明确标注为中文名的字段；匹配有歧义或置信度不足时不写。")]
+        public bool EnableBangumiCharacters { get; set; } = true;
+
+        [DisplayName("启用 Bangumi 评分")]
+        [Description("用 Bangumi 的评分增强动漫（0-10，与 Emby 同刻度）。只作用于剧集与电影，不写单集。")]
+        public bool EnableBangumiRating { get; set; } = true;
+
+        [DisplayName("覆盖现有评分")]
+        [Description("开启时以 Bangumi 评分覆盖已有评分；关闭时仅在原本没有评分时补全。")]
+        [VisibleCondition(nameof(EnableBangumiRating), SimpleCondition.IsTrue)]
+        public bool EnableBangumiRatingOverride { get; set; } = true;
+
+        [DisplayName("最少评分人数")]
+        [Description("Bangumi 评分人数低于该值时不写入，避免小众条目的噪声评分。")]
+        [MinValue(0)]
+        [VisibleCondition(nameof(EnableBangumiRating), SimpleCondition.IsTrue)]
+        public int BangumiRatingMinVotes { get; set; } = 50;
+
+        [DisplayName("角色名已是中文则不替换")]
+        [Description("开启后，角色名判定为中文时跳过解析；注意该判断不含假名，纯汉字的日文名可能被误判为中文。")]
+        public bool EnableBangumiSkipExistingChineseRole { get; set; } = false;
+
+        [DisplayName("同时写入 .nfo")]
+        [Description("把中文角色名与 Bangumi 评分合并进媒体目录的 .nfo。只改 actor 的 role，以及新增 name=\"bangumi\" 的评分项（并把它设为 default，同时降级原默认项）；其它字段原样保留，解析失败会跳过该文件。")]
+        public bool EnableBangumiNfoWrite { get; set; } = true;
+
         public void Initialize() {
             EnsureScraperEditors();
             ScraperEntries = new GenericItemList(new[] {
                 CreateScraperEntry(IntroDbProvider.ProviderName, "适用条目：集；刮削片头片尾标记。", "metadata.scraper.introDb"),
                 CreateScraperEntry(TheIntroDbProvider.ProviderName, "适用条目：电影、集；刮削片头片尾标记。", "metadata.scraper.theIntroDb"),
                 CreateScraperEntry(DanmuProvider.ProviderName, "适用条目：电影、集；刮削弹幕。", "metadata.scraper.danmu"),
-                CreateScraperEntry(DoubanRoleProvider.ProviderName, "适用条目：电影、剧集、集；使用豆瓣人物角色名。")
+                CreateScraperEntry(DoubanRoleProvider.ProviderName, "适用条目：电影、剧集、集；使用豆瓣人物角色名。"),
+                CreateScraperEntry(BangumiProvider.ProviderName, "适用条目：电影、剧集；使用 Bangumi 角色中文名与评分。",
+                    "metadata.scraper.bangumi")
             });
 
             FallbackLanguageList.Clear();
@@ -113,6 +142,7 @@ namespace MediaInfoKeeper.Options {
             ScrapersEditor.TheIntroDb ??= new TheIntroDbEditorOptions();
             ScrapersEditor.IntroDb ??= new IntroDbEditorOptions();
             ScrapersEditor.Danmu ??= new DanmuEditorOptions();
+            ScrapersEditor.Bangumi ??= new BangumiEditorOptions();
         }
 
         public override IEditObjectContainer CreateEditContainer() {
@@ -167,6 +197,14 @@ namespace MediaInfoKeeper.Options {
             AddGroup("TVDB", "",
                 nameof(EnableTvdbFallback),
                 nameof(TvdbFallbackLanguages));
+
+            AddGroup("Bangumi", "参数在下方「刮削器」的 Bangumi 配置中调整；是否启用请在媒体库的元数据下载器里勾选，顺序需排在 DoubanRole 之前。",
+                nameof(EnableBangumiCharacters),
+                nameof(EnableBangumiRating),
+                nameof(EnableBangumiRatingOverride),
+                nameof(BangumiRatingMinVotes),
+                nameof(EnableBangumiSkipExistingChineseRole),
+                nameof(EnableBangumiNfoWrite));
 
             var remaining = new List<EditorBase>();
             foreach (var item in root.EditorItems) {
@@ -252,6 +290,18 @@ namespace MediaInfoKeeper.Options {
             public string ApiKey { get; set; } = string.Empty;
         }
 
+        public class BangumiEditorOptions : EditableOptionsBase {
+            public override string EditorTitle => string.Empty;
+
+            [DisplayName("API 地址")]
+            [Description("留空使用 https://api.bgm.tv，可填写镜像地址。")]
+            public string BaseUrl { get; set; } = string.Empty;
+
+            [DisplayName("访问令牌")]
+            [Description("可选。留空则匿名请求。Bangumi 的公开接口无需令牌，令牌仅用于提高配额。")]
+            public string AccessToken { get; set; } = string.Empty;
+        }
+
         public class ScraperEditorOptions : EditableOptionsBase {
             public override string EditorTitle => string.Empty;
 
@@ -263,6 +313,9 @@ namespace MediaInfoKeeper.Options {
 
             [DisplayName("Danmu")]
             public DanmuEditorOptions Danmu { get; set; } = new();
+
+            [DisplayName("Bangumi")]
+            public BangumiEditorOptions Bangumi { get; set; } = new();
         }
     }
 }

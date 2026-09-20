@@ -120,6 +120,13 @@ define(['connectionManager', 'globalize', 'loading', 'toast', 'confirm'], functi
             : (['zh-hk', 'zh-tw'].includes(locale) ? '刪除片頭片尾' : 'Delete Intro/Credits');
     }
 
+    function getEnhanceBangumiCommandName() {
+        const locale = (globalize.getCurrentLocale() || '').toLowerCase();
+        return locale === 'zh-cn'
+            ? 'Bangumi 角色与评分'
+            : (['zh-hk', 'zh-tw'].includes(locale) ? 'Bangumi 角色與評分' : 'Bangumi Roles & Rating');
+    }
+
     function getCopyLibraryCommandName() {
         const locale = (globalize.getCurrentLocale() || '').toLowerCase();
         return locale === 'zh-cn'
@@ -134,28 +141,29 @@ define(['connectionManager', 'globalize', 'loading', 'toast', 'confirm'], functi
         const isScanExternalFiles = action === 'scan_external_files';
         const isSetIntro = action === 'set_intro';
         const isClearIntro = action === 'clear_intro';
+        const isEnhanceBangumi = action === 'enhance_bangumi';
         if (!result) {
-            return (isDelete ? getDeleteCommandName() : (isScanIntro ? getScanIntroCommandName() : (isScanExternalFiles ? getScanExternalFilesCommandName() : (isSetIntro ? getSetIntroCommandName() : (isClearIntro ? getClearIntroCommandName() : getCommandName()))))) + ' finished';
+            return (isDelete ? getDeleteCommandName() : (isScanIntro ? getScanIntroCommandName() : (isScanExternalFiles ? getScanExternalFilesCommandName() : (isSetIntro ? getSetIntroCommandName() : (isClearIntro ? getClearIntroCommandName() : (isEnhanceBangumi ? getEnhanceBangumiCommandName() : getCommandName())))))) + ' finished';
         }
 
         const locale = (globalize.getCurrentLocale() || '').toLowerCase();
         if (!normalized.hasStats) {
             if (locale === 'zh-cn') {
-                return (isDelete ? '删除完成' : (isScanIntro ? '扫描完成' : (isScanExternalFiles ? '扫描完成' : (isSetIntro ? '设置完成' : (isClearIntro ? '清除完成' : '提取完成'))))) + '（返回体无统计字段，请看日志）';
+                return (isDelete ? '删除完成' : (isScanIntro ? '扫描完成' : (isScanExternalFiles ? '扫描完成' : (isSetIntro ? '设置完成' : (isClearIntro ? '清除完成' : (isEnhanceBangumi ? 'Bangumi 增强完成' : '提取完成')))))) + '（返回体无统计字段，请看日志）';
             }
             if (['zh-hk', 'zh-tw'].includes(locale)) {
-                return (isDelete ? '刪除完成' : (isScanIntro ? '掃描完成' : (isScanExternalFiles ? '掃描完成' : (isSetIntro ? '設置完成' : (isClearIntro ? '清除完成' : '提取完成'))))) + '（返回體無統計字段，請看日誌）';
+                return (isDelete ? '刪除完成' : (isScanIntro ? '掃描完成' : (isScanExternalFiles ? '掃描完成' : (isSetIntro ? '設置完成' : (isClearIntro ? '清除完成' : (isEnhanceBangumi ? 'Bangumi 增強完成' : '提取完成')))))) + '（返回體無統計字段，請看日誌）';
             }
             return 'Completed (no stats in response, check server logs)';
         }
 
         if (locale === 'zh-cn') {
-            const prefix = isDelete ? '删除完成' : (isScanIntro ? '扫描完成' : (isScanExternalFiles ? '扫描完成' : (isSetIntro ? '设置完成' : (isClearIntro ? '清除完成' : '提取完成'))));
+            const prefix = isDelete ? '删除完成' : (isScanIntro ? '扫描完成' : (isScanExternalFiles ? '扫描完成' : (isSetIntro ? '设置完成' : (isClearIntro ? '清除完成' : (isEnhanceBangumi ? 'Bangumi 增强完成' : '提取完成')))));
             return prefix + `：成功 ${normalized.succeeded}，失败 ${normalized.failed}，跳过 ${normalized.skipped}`;
         }
 
         if (['zh-hk', 'zh-tw'].includes(locale)) {
-            const prefix = isDelete ? '刪除完成' : (isScanIntro ? '掃描完成' : (isScanExternalFiles ? '掃描完成' : (isSetIntro ? '設置完成' : (isClearIntro ? '清除完成' : '提取完成'))));
+            const prefix = isDelete ? '刪除完成' : (isScanIntro ? '掃描完成' : (isScanExternalFiles ? '掃描完成' : (isSetIntro ? '設置完成' : (isClearIntro ? '清除完成' : (isEnhanceBangumi ? 'Bangumi 增強完成' : '提取完成')))));
             return prefix + `：成功 ${normalized.succeeded}，失敗 ${normalized.failed}，跳過 ${normalized.skipped}`;
         }
 
@@ -272,7 +280,8 @@ define(['connectionManager', 'globalize', 'loading', 'toast', 'confirm'], functi
         const isSetIntro = action === 'set_intro';
         const isClearIntro = action === 'clear_intro';
         const isCopyLibrary = action === 'copy_library';
-        const commandName = isDelete ? getDeleteCommandName() : (isScanIntro ? getScanIntroCommandName() : (isScanExternalFiles ? getScanExternalFilesCommandName() : (isSetIntro ? getSetIntroCommandName() : (isClearIntro ? getClearIntroCommandName() : (isCopyLibrary ? getCopyLibraryCommandName() : getCommandName())))));
+        const isEnhanceBangumi = action === 'enhance_bangumi';
+        const commandName = isDelete ? getDeleteCommandName() : (isScanIntro ? getScanIntroCommandName() : (isScanExternalFiles ? getScanExternalFilesCommandName() : (isSetIntro ? getSetIntroCommandName() : (isClearIntro ? getClearIntroCommandName() : (isCopyLibrary ? getCopyLibraryCommandName() : (isEnhanceBangumi ? getEnhanceBangumiCommandName() : getCommandName()))))));
         const detail = (err && (err.message || err.statusText || err.responseText)) ? ` (${err.message || err.statusText || err.responseText})` : '';
         return commandName + ' failed' + detail;
     }
@@ -619,6 +628,30 @@ define(['connectionManager', 'globalize', 'loading', 'toast', 'confirm'], functi
             });
         },
 
+        enhanceBangumi: function (ids) {
+            if (!ids || !ids.length) {
+                return Promise.resolve();
+            }
+
+            const commandName = getEnhanceBangumiCommandName();
+            return confirm({
+                text: globalize.translate('AreYouSureToContinue'),
+                title: commandName,
+                confirmText: commandName,
+                primary: 'cancel'
+            }).then(function () {
+                loading.show();
+                const apiClient = connectionManager.currentApiClient();
+                return postJson(apiClient, 'MediaInfoKeeper/Items/EnhanceBangumi', {Ids: ids}).then(function (result) {
+                    toast(getResultMessage(result, 'enhance_bangumi'));
+                }).catch(function (err) {
+                    toast(getErrorMessage('enhance_bangumi', err));
+                }).finally(function () {
+                    loading.hide();
+                });
+            });
+        },
+
         setIntro: function (ids, items) {
             if (!ids || !ids.length) {
                 return Promise.resolve();
@@ -894,6 +927,15 @@ define(['connectionManager', 'globalize', 'loading', 'toast', 'confirm'], functi
                     });
                 }
 
+                const bangumiSupportedTypes = {Movie: true, Series: true};
+                if (items.every(item => bangumiSupportedTypes[item.Type])) {
+                    commands.push({
+                        name: getEnhanceBangumiCommandName(),
+                        id: 'enhance_bangumi',
+                        icon: 'translate'
+                    });
+                }
+
                 return commands;
             },
             executeCommand: function (command, items) {
@@ -920,6 +962,10 @@ define(['connectionManager', 'globalize', 'loading', 'toast', 'confirm'], functi
 
                 if (command === 'scan_intro') {
                     return api.scanIntro(ids);
+                }
+
+                if (command === 'enhance_bangumi') {
+                    return api.enhanceBangumi(ids);
                 }
 
                 if (command === 'scan_external_files') {

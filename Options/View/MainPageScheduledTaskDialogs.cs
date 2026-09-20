@@ -89,4 +89,20 @@ namespace MediaInfoKeeper.Options.View {
         }
     }
 
+    internal sealed class
+        BangumiMetaTaskDialogView : MainPageTaskDialogView<MainPageOptions.BangumiMetaTaskEditorOptions> {
+        private readonly MainPageOptions owner;
+
+        public BangumiMetaTaskDialogView(string pluginId, MainPageOptions owner)
+            : base(pluginId,
+                owner?.ScheduledTasksEditor?.BangumiMeta ?? new MainPageOptions.BangumiMetaTaskEditorOptions(),
+                "Bangumi 角色与评分") {
+            this.owner = owner;
+        }
+
+        public override async Task OnOkCommand(string providerId, string commandId, string data) {
+            await base.OnOkCommand(providerId, commandId, data).ConfigureAwait(false);
+            if (owner?.ScheduledTasksEditor != null) owner.ScheduledTasksEditor.BangumiMeta = Options;
+        }
+    }
 }

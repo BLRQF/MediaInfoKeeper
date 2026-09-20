@@ -33,6 +33,22 @@ namespace MediaInfoKeeper.Options.View {
         }
     }
 
+    internal sealed class BangumiDialogView : MainPageTaskDialogView<MetaDataOptions.BangumiEditorOptions> {
+        private readonly MetaDataOptions owner;
+
+        public BangumiDialogView(string pluginId, MetaDataOptions owner)
+            : base(pluginId,
+                owner?.ScrapersEditor?.Bangumi ?? new MetaDataOptions.BangumiEditorOptions(),
+                "Bangumi") {
+            this.owner = owner;
+        }
+
+        public override async Task OnOkCommand(string providerId, string commandId, string data) {
+            await base.OnOkCommand(providerId, commandId, data).ConfigureAwait(false);
+            if (owner?.ScrapersEditor != null) owner.ScrapersEditor.Bangumi = Options;
+        }
+    }
+
     internal sealed class DanmuDialogView : MainPageTaskDialogView<MetaDataOptions.DanmuEditorOptions> {
         private readonly MetaDataOptions owner;
 

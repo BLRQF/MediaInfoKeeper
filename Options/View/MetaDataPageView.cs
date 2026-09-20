@@ -10,6 +10,7 @@ namespace MediaInfoKeeper.Options.View {
         private const string TheIntroDbDialogCommandId = "metadata.scraper.theIntroDb";
         private const string IntroDbDialogCommandId = "metadata.scraper.introDb";
         private const string DanmuDialogCommandId = "metadata.scraper.danmu";
+        private const string BangumiDialogCommandId = "metadata.scraper.bangumi";
         private readonly MetaDataOptionsStore store;
 
         public MetaDataPageView(PluginInfo pluginInfo, MetaDataOptionsStore store)
@@ -29,6 +30,9 @@ namespace MediaInfoKeeper.Options.View {
 
             if (string.Equals(commandId, DanmuDialogCommandId, StringComparison.Ordinal))
                 return Task.FromResult<IPluginUIView>(new DanmuDialogView(PluginId, Options));
+
+            if (string.Equals(commandId, BangumiDialogCommandId, StringComparison.Ordinal))
+                return Task.FromResult<IPluginUIView>(new BangumiDialogView(PluginId, Options));
 
             return base.RunCommand(itemId, commandId, data);
         }

@@ -75,6 +75,7 @@ namespace MediaInfoKeeper.Options {
             ScheduledTasksEditor.ExportExistingMediaInfo ??= new ExportExistingMediaInfoTaskEditorOptions();
             ScheduledTasksEditor.RestoreMediaInfo ??= new RestoreMediaInfoTaskEditorOptions();
             ScheduledTasksEditor.UpdatePlugin ??= new UpdatePluginTaskEditorOptions();
+            ScheduledTasksEditor.BangumiMeta ??= new BangumiMetaTaskEditorOptions();
         }
 
         public void PrepareScheduledTaskEditorForUi() {
@@ -87,6 +88,7 @@ namespace MediaInfoKeeper.Options {
             ScheduledTasksEditor.ExportExistingMediaInfo.LibraryList = LibraryList;
             ScheduledTasksEditor.RestoreMediaInfo.LibraryList = LibraryList;
             ScheduledTasksEditor.UpdatePlugin.Initialize();
+            ScheduledTasksEditor.BangumiMeta.LibraryList = LibraryList;
 
             ItemAddedTaskEntries = BuildItemAddedTaskEntries();
             ScheduledTaskEntries = BuildScheduledTaskEntries();
@@ -177,6 +179,8 @@ namespace MediaInfoKeeper.Options {
                     "main.scheduled.run.restoreMediaInfo"),
                 CreateScheduledTaskEntry("共享片头片尾", "main.scheduled.submitTheIntroDbMarkers",
                     "main.scheduled.run.submitTheIntroDbMarkers"),
+                CreateScheduledTaskEntry("Bangumi 角色与评分", "main.scheduled.bangumiMeta",
+                    "main.scheduled.run.bangumiMeta"),
                 CreateScheduledTaskEntry("重启Emby", null, "main.scheduled.run.restartEmby")
             });
         }
@@ -481,6 +485,21 @@ namespace MediaInfoKeeper.Options {
                 new();
 
             [DisplayName("更新插件")] public UpdatePluginTaskEditorOptions UpdatePlugin { get; set; } = new();
+
+            [DisplayName("Bangumi 角色与评分")]
+            public BangumiMetaTaskEditorOptions BangumiMeta { get; set; } = new();
+        }
+
+        public class BangumiMetaTaskEditorOptions : EditableOptionsBase {
+            public override string EditorTitle => string.Empty;
+
+            [Browsable(false)] public IEnumerable<EditorSelectOption> LibraryList { get; set; }
+
+            [DisplayName("媒体库范围")]
+            [Description("留空表示全部。只会处理范围内的剧集与电影，不处理单集。")]
+            [EditMultilSelect]
+            [SelectItemsSource(nameof(LibraryList))]
+            public string BangumiMetaLibraries { get; set; } = string.Empty;
         }
     }
 }

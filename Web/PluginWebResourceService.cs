@@ -20,6 +20,7 @@ namespace MediaInfoKeeper.Web {
     public class PluginWebResourceService : IService, IRequiresRequest {
         private readonly ClearIntroRouteHandler _clearIntroHandler;
         private readonly DeleteMediaInfoPersistRouteHandler _deletePersistHandler;
+        private readonly EnhanceBangumiRouteHandler _enhanceBangumiHandler;
         private readonly ExtractMediaInfoRouteHandler _extractHandler;
         private readonly IItemRepository _itemRepository;
         private readonly IJsonSerializer _jsonSerializer;
@@ -42,6 +43,7 @@ namespace MediaInfoKeeper.Web {
             _deletePersistHandler =
                 new DeleteMediaInfoPersistRouteHandler(Plugin.LibraryService.ExpandItem, libraryManager,
                     itemRepository);
+            _enhanceBangumiHandler = new EnhanceBangumiRouteHandler(Plugin.LibraryService.ExpandItem);
             _scanIntroHandler = new ScanIntroRouteHandler(Plugin.LibraryService.ExpandItem);
             _scanExternalFilesHandler = new ScanExternalFilesRouteHandler(Plugin.LibraryService.ExpandItem);
             _setIntroHandler =
@@ -172,6 +174,10 @@ namespace MediaInfoKeeper.Web {
 
         public MediaInfoMenuResponse Post(DeleteMediaInfoPersistRequest request) {
             return _deletePersistHandler.Handle(request);
+        }
+
+        public MediaInfoMenuResponse Post(EnhanceBangumiRequest request) {
+            return _enhanceBangumiHandler.Handle(request);
         }
 
         public MediaInfoMenuResponse Post(ScanIntroRequest request) {
