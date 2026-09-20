@@ -41,21 +41,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.x'
+          dotnet-version: "8.x"
           cache: true
           cache-dependency-path: |
             Directory.Build.props
 
       - name: Restore
         run: dotnet restore MediaInfoKeeper.csproj
- 
+
       - name: Read version
         id: read_version
         shell: bash
@@ -335,7 +335,7 @@ jobs:
           echo "release_body_path=$body_file" >> "$GITHUB_OUTPUT"
 
       - name: Upload release asset
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ env.release_name }}
           tag_name: ${{ env.release_tag }}
