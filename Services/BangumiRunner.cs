@@ -74,8 +74,10 @@ namespace MediaInfoKeeper.Services {
             if (items == null) return targets;
 
             foreach (var item in items) {
+                // Movie 与 Series 在 Emby 中没有继承关系（Movie : Video，Series : Folder），
+                // switch 无法为这两种分支推断出公共类型，故显式把首分支锚定为 BaseItem。
                 var target = item switch {
-                    Movie movie => movie,
+                    Movie movie => (BaseItem)movie,
                     Series series => series,
                     Season season => season.Series,
                     Episode episode => episode.Series,

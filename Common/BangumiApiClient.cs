@@ -386,18 +386,6 @@ namespace MediaInfoKeeper.Common {
             return results;
         }
 
-        public static List<string> AllValues(IEnumerable<BangumiInfoboxItem> infobox) {
-            var results = new List<string>();
-            if (infobox == null) return results;
-
-            foreach (var item in infobox)
-                foreach (var value in ExtractValues(item?.Value))
-                    if (!string.IsNullOrWhiteSpace(value) && !results.Contains(value))
-                        results.Add(value);
-
-            return results;
-        }
-
         // infobox 的 value 是 string 与 [{k,v}] 的联合类型，必须按 JsonElement 的实际种类分派。
         private static IEnumerable<string> ExtractValues(JsonElement value) {
             if (value.ValueKind == JsonValueKind.String) {
